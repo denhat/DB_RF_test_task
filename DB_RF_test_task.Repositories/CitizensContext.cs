@@ -1,8 +1,7 @@
 ﻿using DB_RF_test_task.Repositories.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace DB_RF_test_task.Repositories
 {
@@ -12,7 +11,16 @@ namespace DB_RF_test_task.Repositories
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer(@"Server=(local);Database=DB_RF_test_task;User=local_admin;Password=local_admin;");
+            var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var builder = new ConfigurationBuilder()
+                .AddJsonFile(string.IsNullOrEmpty(environmentName) 
+                    ? "appsettings.json"
+                    : $"appsettings.{environmentName}.json", 
+                    optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables();
+            IConfigurationRoot configuration = builder.Build();
+
+            optionsBuilder.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
         }
     }
 }
